@@ -44,7 +44,6 @@ def getText(filename):
     fullText = []
     for para in doc.paragraphs:
         fullText.append(para.text)
-    print('\n'.join(fullText))
     return '\n'.join(fullText)
 
 def upload_to_dynamodb(filename, s3link, data):
@@ -62,15 +61,15 @@ def upload_to_dynamodb(filename, s3link, data):
         's3link': s3link,
         'tableData': tableData
     }
-    print(item)
 
     table.put_item(Item=item)
 
 def lambda_handler(event, context):
     """Main Lambda function."""
     try:
-        # Assume event contains S3 URL
-        s3link = event.get("s3link")
+        body = json.loads(event.get("body"))
+        # Assume body contains S3 URL
+        s3link = body.get("s3link")
         if not s3link:
             return {"statusCode": 400, "body": json.dumps({"error": "No S3 URL provided"})}
 
@@ -85,7 +84,6 @@ def lambda_handler(event, context):
             'TIMEZONE': str(tz)
         }
         data = search_dates(getText((file_path)), settings=settings)
-        print(data)
 
         if data is None:
             return {
